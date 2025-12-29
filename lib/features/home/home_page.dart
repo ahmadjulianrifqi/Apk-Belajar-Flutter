@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../materi/materi_page.dart';
+import '../quiz/quiz_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -37,24 +38,32 @@ class HomePage extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                children: [
+                children: const [
                   MateriCard(
                     title: 'Makhluk Hidup',
+                    description:
+                        'Belajar tentang ciri-ciri dan kebutuhan makhluk hidup.',
                     icon: Icons.pets,
                     color: Colors.green,
                   ),
                   MateriCard(
                     title: 'Tumbuhan',
+                    description:
+                        'Mengenal bagian tumbuhan dan fungsinya.',
                     icon: Icons.local_florist,
                     color: Colors.lightGreen,
                   ),
                   MateriCard(
                     title: 'Tubuh Manusia',
+                    description:
+                        'Mengenal bagian tubuh manusia dan kegunaannya.',
                     icon: Icons.accessibility_new,
                     color: Colors.orange,
                   ),
                   MateriCard(
                     title: 'Lingkungan',
+                    description:
+                        'Menjaga kebersihan dan kelestarian lingkungan.',
                     icon: Icons.public,
                     color: Colors.blue,
                   ),
@@ -73,12 +82,14 @@ class HomePage extends StatelessWidget {
 /// ===============================
 class MateriCard extends StatelessWidget {
   final String title;
+  final String description;
   final IconData icon;
   final Color color;
 
   const MateriCard({
     super.key,
     required this.title,
+    required this.description,
     required this.icon,
     required this.color,
   });
@@ -86,12 +97,16 @@ class MateriCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
         Navigator.push(
           context,
-         MaterialPageRoute(
-          builder: (context) => MateriPage(title: title)
-         ),
+          MaterialPageRoute(
+            builder: (context) => MateriPage(
+              title: title,
+              description: description,
+            ),
+          ),
         );
       },
       child: Container(
