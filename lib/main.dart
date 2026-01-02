@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'features/home/home_page.dart';
+import 'navigation/main_navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Inisialisasi data locale Indonesia
-  await initializeDateFormatting('id', null);
+  await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
 
@@ -20,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const HomePage(),
+      home: const MainNavigation(),
     );
   }
 }

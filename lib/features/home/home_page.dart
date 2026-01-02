@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/storage/streak_storage.dart';
 import '../materi/materi_page.dart';
+import '../../widgets/materi_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,63 +11,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String> riwayatBelajar = [];
-  int streakHariIni = 0;
+  int streak = 0;
 
   @override
   void initState() {
     super.initState();
-    loadRiwayat();
+    loadStreak();
   }
 
-  Future<void> loadRiwayat() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getStringList('riwayatBelajar') ?? [];
-
-    data.sort();
-    setState(() {
-      riwayatBelajar = data;
-      streakHariIni = hitungStreak(data);
-    });
+  Future<void> loadStreak() async {
+    final value = await StreakStorage.getStreak();
+    setState(() => streak = value);
   }
 
-  Future<void> tandaiBelajarHariIni() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-
-    if (!riwayatBelajar.contains(today)) {
-      riwayatBelajar.add(today);
-      riwayatBelajar.sort();
-      await prefs.setStringList('riwayatBelajar', riwayatBelajar);
-    }
-
-    setState(() {
-      streakHariIni = hitungStreak(riwayatBelajar);
-    });
-  }
-
-  int hitungStreak(List<String> data) {
-    if (data.isEmpty) return 0;
-
-    final dates = data
-        .map((e) => DateTime.parse(e))
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
-
-    int streak = 0;
-    DateTime check = DateTime.now();
-
-    for (final d in dates) {
-      if (d.year == check.year &&
-          d.month == check.month &&
-          d.day == check.day) {
-        streak++;
-        check = check.subtract(const Duration(days: 1));
-      } else {
-        break;
-      }
-    }
-    return streak;
+  Future<void> markToday() async {
+    await StreakStorage.markToday();
+    loadStreak();
   }
 
   @override
@@ -75,7 +35,6 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF5F7FA),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ===== HEADER =====
             Container(
@@ -95,10 +54,8 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Halo 👋',
-                        style: TextStyle(color: Colors.white70),
-                      ),
+                      const Text('Halo 👋',
+                          style: TextStyle(color: Colors.white70)),
                       const SizedBox(height: 4),
                       const Text(
                         'Siap Belajar IPA?',
@@ -110,7 +67,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '🔥 Streak: $streakHariIni hari',
+                        '🔥 Streak: $streak hari',
                         style: const TextStyle(color: Colors.white),
                       ),
                     ],
@@ -155,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: tandaiBelajarHariIni,
+                    onPressed: markToday,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.green,
@@ -166,20 +123,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            // ===== SECTION TITLE =====
+            // ===== MATERI =====
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Materi IPA',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Materi IPA',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 12),
 
-            // ===== GRID MATERI =====
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -187,100 +146,70 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              children: const [
+              children: [
                 MateriCard(
                   title: 'Makhluk Hidup',
                   description: 'Ciri dan kebutuhan',
                   icon: Icons.pets,
                   color: Colors.green,
+                  onTap: () => _openMateri(
+                    context,
+                    'Makhluk Hidup',
+                    'Ciri dan kebutuhan makhluk hidup',
+                  ),
                 ),
                 MateriCard(
                   title: 'Tumbuhan',
                   description: 'Bagian dan fungsi',
                   icon: Icons.local_florist,
                   color: Colors.lightGreen,
+                  onTap: () => _openMateri(
+                    context,
+                    'Tumbuhan',
+                    'Bagian dan fungsi tumbuhan',
+                  ),
                 ),
                 MateriCard(
                   title: 'Tubuh Manusia',
                   description: 'Organ dan fungsi',
                   icon: Icons.accessibility_new,
                   color: Colors.orange,
+                  onTap: () => _openMateri(
+                    context,
+                    'Tubuh Manusia',
+                    'Organ tubuh dan fungsinya',
+                  ),
                 ),
                 MateriCard(
                   title: 'Lingkungan',
                   description: 'Menjaga alam',
                   icon: Icons.public,
                   color: Colors.blue,
+                  onTap: () => _openMateri(
+                    context,
+                    'Lingkungan',
+                    'Cara menjaga lingkungan',
+                  ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
-}
 
-/// ===============================
-/// CARD MATERI
-/// ===============================
-class MateriCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-
-  const MateriCard({
-    super.key,
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MateriPage(
-              title: title,
-              description: description,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withAlpha(40),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
+  void _openMateri(
+    BuildContext context,
+    String title,
+    String description,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MateriPage(
+          title: title,
+          description: description,
         ),
       ),
     );
